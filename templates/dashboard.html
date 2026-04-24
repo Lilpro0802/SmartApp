@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* BENTO BOX GRID LAYOUT */
+    .dashboard-header {
+        margin-bottom: 24px;
+    }
+    
+    .dashboard-header h2 {
+        font-weight: 700;
+        color: var(--dark);
+        margin: 0;
+        font-size: 24px;
+    }
+    
+    .dashboard-header p {
+        color: var(--text-gray);
+        margin: 4px 0 0 0;
+        font-size: 14px;
+    }
+
+    .bento-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 24px;
+    }
+
+    .bento-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--slate-border);
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .bento-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    /* SPECIFIC WIDGETS */
+    .widget-plan { grid-column: span 8; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; }
+    @media(max-width: 991px) { .widget-plan { grid-column: span 12; } }
+    
+    .widget-status { grid-column: span 4; }
+    @media(max-width: 991px) { .widget-status { grid-column: span 12; } }
+
+    .widget-usage { grid-column: span 6; }
+    @media(max-width: 768px) { .widget-usage { grid-column: span 12; } }
+
+    .widget-billing { grid-column: span 6; }
+    @media(max-width: 768px) { .widget-billing { grid-column: span 12; } }
+
+    /* INNER STYLES */
+    .widget-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; margin-bottom: 16px; }
+    
+    /* Plan Info */
+    .plan-name { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+    .plan-speed { font-size: 16px; opacity: 0.9; margin-bottom: 24px; }
+    .plan-meta { display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; }
+    .plan-price { font-size: 24px; font-weight: 700; }
+    .plan-date { font-size: 13px; opacity: 0.8; }
+    
+    /* Network Status */
+    .status-indicator { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 8px 16px; border-radius: 50px; font-weight: 600; font-size: 14px; margin-bottom: 20px; width: fit-content; }
+    .pulse-dot { width: 10px; height: 10px; background-color: #10b981; border-radius: 50%; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+    .status-metric { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--slate-border); }
+    .status-metric:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .metric-label { font-size: 13px; color: var(--text-gray); font-weight: 500; }
+    .metric-value { font-size: 14px; font-weight: 700; color: var(--dark); }
+
+    /* Progress Bar */
+    .progress-container { width: 100%; height: 8px; background: var(--slate-border); border-radius: 10px; overflow: hidden; margin: 12px 0 8px 0; }
+    .progress-bar { height: 100%; background: var(--primary); border-radius: 10px; width: 65%; }
+
+</style>
+
+<div class="dashboard-header">
+    <h2>Welcome back, {{ name }}!</h2>
+    <p>Here is what's happening with your SmartApp connection today.</p>
+</div>
+
+<div class="bento-grid">
+
+    <!-- Active Plan Widget (Hero) -->
+    <div class="bento-card widget-plan">
+        <div class="widget-title" style="color: white;">Current Subscription</div>
+        <div class="plan-name">Premium Fiber</div>
+        <div class="plan-speed"><i class="bi bi-rocket-takeoff" style="margin-right: 8px;"></i> 100 Mbps Symmetric</div>
+        
+        <div class="plan-meta">
+            <div>
+                <div class="plan-date">Valid till: 30 Sept 2026</div>
+                <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">Auto-renewal active</div>
+            </div>
+            <div class="plan-price">₹799<span style="font-size: 14px; opacity: 0.8; font-weight: 400;">/mo</span></div>
+        </div>
+    </div>
+
+    <!-- Network Status Widget -->
+    <div class="bento-card widget-status">
+        <div class="widget-title" style="color: var(--text-gray);">Network Status</div>
+        
+        <div class="status-indicator">
+            <div class="pulse-dot"></div> Online
+        </div>
+        
+        <div style="margin-top: auto;">
+            <div class="status-metric">
+                <span class="metric-label">Uptime</span>
+                <span class="metric-value">99.98% (30 days)</span>
+            </div>
+            <div class="status-metric">
+                <span class="metric-label">Router IP</span>
+                <span class="metric-value">192.168.1.1</span>
+            </div>
+            <div class="status-metric">
+                <span class="metric-label">Connected Devices</span>
+                <span class="metric-value">4 Active</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Usage Widget -->
+    <div class="bento-card widget-usage">
+        <div class="widget-title" style="color: var(--text-gray);">Data Usage (This Month)</div>
+        <div style="font-size: 20px; font-weight: 700; color: var(--dark); margin-bottom: 4px;">650 GB <span style="font-size: 14px; font-weight: 400; color: var(--text-gray);">/ 1000 GB FUP</span></div>
+        <div class="progress-container">
+            <div class="progress-bar"></div>
+        </div>
+        <div style="font-size: 12px; color: var(--text-gray); display: flex; justify-content: space-between;">
+            <span>15 days remaining</span>
+            <span>35% left</span>
+        </div>
+    </div>
+
+    <!-- Quick Billing Widget -->
+    <div class="bento-card widget-billing">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+            <div class="widget-title" style="color: var(--text-gray); margin-bottom: 0;">Recent Invoice</div>
+            <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">Paid</span>
+        </div>
+        
+        <div style="display: flex; align-items: center; margin-bottom: auto;">
+            <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(37,99,235,0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 20px;">
+                <i class="bi bi-file-earmark-pdf"></i>
+            </div>
+            <div>
+                <div style="font-weight: 600; font-size: 14px;">Invoice #INV-2026-09</div>
+                <div style="font-size: 12px; color: var(--text-gray);">₹799 • Paid on Sep 1</div>
+            </div>
+        </div>
+        
+        <a href="#" style="font-size: 13px; font-weight: 600; color: var(--primary); text-decoration: none; margin-top: 16px; display: inline-block;">Download Receipt <i class="bi bi-download" style="margin-left: 4px;"></i></a>
+    </div>
+
+</div>
+
+{% endblock %}

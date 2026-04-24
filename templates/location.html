@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<style>
+    .dashboard-header { margin-bottom: 24px; }
+    .dashboard-header h2 { font-weight: 700; color: var(--dark); margin: 0; font-size: 24px; }
+    .dashboard-header p { color: var(--text-gray); margin: 4px 0 0 0; font-size: 14px; }
+
+    .location-wrapper {
+        display: flex;
+        gap: 24px;
+        height: 65vh;
+        min-height: 500px;
+    }
+
+    .map-card {
+        flex: 2;
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--slate-border);
+        overflow: hidden;
+        position: relative;
+    }
+
+    #map {
+        height: 100%;
+        width: 100%;
+        z-index: 1;
+    }
+
+    .form-card {
+        flex: 1;
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--slate-border);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .input-grp {
+        display: flex;
+        align-items: center;
+        background: var(--slate);
+        border: 1px solid var(--slate-border);
+        border-radius: 12px;
+        padding: 0 16px;
+        margin-bottom: 16px;
+        height: 48px;
+        transition: all 0.2s ease;
+    }
+
+    .input-grp:focus-within {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .input-grp i { color: var(--text-gray); margin-right: 12px; font-size: 16px; }
+    .input-grp input { border: none; outline: none; background: transparent; width: 100%; font-size: 14px; color: var(--dark); }
+    .input-grp input::placeholder { color: #94a3b8; }
+
+    .btn-feasibility {
+        width: 100%; height: 48px; border-radius: 12px;
+        background: var(--primary); color: white;
+        border: none; font-weight: 600; font-size: 15px;
+        transition: all 0.3s ease; margin-top: 24px;
+    }
+    .btn-feasibility:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .result-box {
+        margin-top: 16px;
+        padding: 16px;
+        border-radius: 12px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 14px;
+        display: none;
+    }
+    .result-box.success { background: rgba(16, 185, 129, 0.1); color: #10b981; display: block; }
+    .result-box.error { background: rgba(239, 68, 68, 0.1); color: #ef4444; display: block; }
+    .result-box.loading { background: rgba(100, 116, 139, 0.1); color: var(--text-gray); display: block; }
+
+    @media (max-width: 991px) {
+        .location-wrapper { flex-direction: column; height: auto; }
+        .map-card { height: 400px; flex: none; }
+    }
+</style>
+
+<div class="dashboard-header">
+    <h2>Coverage Check</h2>
+    <p>Pinpoint your location or enter your pincode to check SmartApp availability.</p>
+</div>
+
+<div class="location-wrapper">
+    <!-- MAP SECTION -->
+    <div class="map-card">
+        <div id="map"></div>
+    </div>
+
+    <!-- FORM SECTION -->
+    <div class="form-card">
+        <h5 style="font-weight: 700; color: var(--dark); margin-bottom: 24px; font-size: 16px;">
+            <i class="bi bi-geo-alt" style="margin-right: 8px; color: var(--primary);"></i> Location Details
+        </h5>
+
+        <div class="input-grp">
+            <i class="bi bi-pin-map"></i>
+            <input type="text" id="pincode" placeholder="Enter Pincode (e.g. 411001)">
+        </div>
+
+        <div class="input-grp">
+            <i class="bi bi-building"></i>
+            <input type="text" id="district" placeholder="District">
+        </div>
+
+        <div class="input-grp" style="background: rgba(0,0,0,0.02);">
+            <i class="bi bi-geo"></i>
+            <input type="text" id="area" placeholder="Area Name" readonly>
+        </div>
+
+        <button class="btn-feasibility" onclick="checkAvailability()">
+            Verify Coverage
+        </button>
+
+        <div class="result-box" id="resultBox"></div>
+    </div>
+</div>
+
+<script>
+    /* MAP INIT */
+    var map = L.map('map').setView([18.5204, 73.8567], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+    var marker;
+
+    /* MAP CLICK */
+    map.on('click', function(e) {
+        resetResult();
+        let lat = e.latlng.lat;
+        let lon = e.latlng.lng;
+        
+        if(marker) map.removeLayer(marker);
+        marker = L.marker([lat, lon]).addTo(map);
+
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+        .then(res => res.json())
+        .then(data => {
+            let addr = data.address;
+            document.getElementById("area").value = addr.neighbourhood || addr.suburb || addr.village || "";
+            document.getElementById("district").value = addr.state_district || addr.city || addr.county || "";
+            document.getElementById("pincode").value = addr.postcode || "";
+        });
+    });
+
+    /* PINCODE INPUT */
+    document.getElementById("pincode").addEventListener("input", function() {
+        resetResult();
+        let pincode = this.value;
+        if(pincode.length === 6){
+            fetch(`https://api.postalpincode.in/pincode/${pincode}`)
+            .then(res => res.json())
+            .then(data => {
+                if(data[0].Status === "Success"){
+                    let po = data[0].PostOffice[0];
+                    document.getElementById("area").value = po.Name;
+                    document.getElementById("district").value = po.District;
+                    
+                    let location = po.Name + ", " + po.District;
+                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${location}`)
+                    .then(res => res.json())
+                    .then(loc => {
+                        if(loc.length > 0){
+                            let lat = loc[0].lat;
+                            let lon = loc[0].lon;
+                            map.setView([lat, lon], 14);
+                            if(marker) map.removeLayer(marker);
+                            marker = L.marker([lat, lon]).addTo(map);
+                        }
+                    });
+                }
+            });
+        }
+    });
+
+    /* CHECK AVAILABILITY UI */
+    function resetResult() {
+        const box = document.getElementById("resultBox");
+        if(box) {
+            box.className = "result-box";
+            box.innerHTML = "";
+            box.style.display = "none";
+        }
+    }
+
+    function checkAvailability() {
+        try {
+            console.log("Check Availability Clicked!");
+            const box = document.getElementById("resultBox");
+            if (!box) {
+                alert("Error: Result box not found in HTML!");
+                return;
+            }
+            
+            // Force layout visibility with inline styles heavily applied
+            box.style.display = "block"; 
+            box.style.padding = "16px";
+            box.style.marginTop = "16px";
+            box.style.borderRadius = "12px";
+            box.style.textAlign = "center";
+            box.style.fontWeight = "600";
+            
+            let distInput = document.getElementById("district");
+            let pinInput = document.getElementById("pincode");
+            
+            let dist = distInput ? distInput.value.toLowerCase() : "";
+            let pin = pinInput ? pinInput.value.trim() : "";
+            
+            if(!pin || pin.length !== 6 || isNaN(pin)) {
+                box.style.backgroundColor = "#fee2e2";
+                box.style.color = "#dc2626";
+                box.innerHTML = "Please enter a valid 6-digit Indian Pincode.";
+                return;
+            }
+
+            if(!dist) {
+                box.style.backgroundColor = "#fee2e2";
+                box.style.color = "#dc2626";
+                box.innerHTML = "District not identified. Please click the map or type a valid pincode first.";
+                return;
+            }
+
+            box.style.backgroundColor = "#f1f5f9";
+            box.style.color = "#64748b";
+            box.innerHTML = "<i class='bi bi-arrow-repeat spin'></i> Analyzing Feasibility...";
+
+            const servedCities = [
+                "pune", "mumbai", "navi mumbai", "thane", "nagpur", 
+                "aurangabad", "sangli", "satara", "indore", "bhopal", 
+                "raipur", "patna", "srinagar"
+            ];
+            
+            const isAvailable = servedCities.some(city => dist.includes(city));
+
+            setTimeout(() => {
+                if(isAvailable) {
+                    box.style.backgroundColor = "#dcfce7";
+                    box.style.color = "#166534";
+                    box.innerHTML = "<i class='bi bi-check-circle-fill me-2'></i> Ultra-fast Fiber is available in your area!";
+                } else {
+                    box.style.backgroundColor = "#fef3c7";
+                    box.style.color = "#b45309";
+                    box.innerHTML = "<i class='bi bi-info-circle-fill me-2'></i> We are currently not available in this pincode, but we are expanding and coming soon!";
+                }
+            }, 800);
+            
+        } catch (err) {
+            console.error("Availability Check Error: ", err);
+            alert("Feasibility check error: " + err.message);
+        }
+    }
+</script>
+{% endblock %}

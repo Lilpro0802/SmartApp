@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .dashboard-header { margin-bottom: 24px; }
+    .dashboard-header h2 { font-weight: 700; color: var(--dark); margin: 0; font-size: 24px; }
+    .dashboard-header p { color: var(--text-gray); margin: 4px 0 0 0; font-size: 14px; }
+
+    .plans-wrapper {
+        display: flex;
+        gap: 32px;
+    }
+
+    /* LEFT CATEGORY MENU */
+    .plans-nav {
+        width: 240px;
+        flex-shrink: 0;
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+        border: 1px solid var(--slate-border);
+        align-self: flex-start;
+    }
+
+    .plan-cat {
+        padding: 14px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--text-gray);
+        font-size: 14px;
+        transition: all 0.2s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .plan-cat:hover {
+        background: var(--slate);
+        color: var(--dark);
+    }
+
+    .plan-cat.active {
+        background: rgba(37, 99, 235, 0.08);
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+    /* RIGHT SIDE - GRID */
+    .plans-grid {
+        flex: 1;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
+        align-items: flex-start;
+    }
+
+    /* PLAN CARDS */
+    .premium-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 32px 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        border: 1px solid var(--slate-border);
+        position: relative;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .premium-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+        border-color: #cbd5e1;
+    }
+
+    .premium-card.popular {
+        border: 2px solid var(--primary);
+    }
+
+    .ribbon {
+        position: absolute;
+        top: -12px; left: 50%;
+        transform: translateX(-50%);
+        background: var(--primary);
+        color: white;
+        padding: 4px 16px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .pc-speed { font-size: 14px; font-weight: 600; color: var(--primary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .pc-price { font-size: 36px; font-weight: 800; color: var(--dark); margin-bottom: 4px; display: flex; align-items: flex-end; }
+    .pc-price span { font-size: 14px; font-weight: 500; color: var(--text-gray); margin-bottom: 8px; margin-left: 4px; }
+    .pc-val { font-size: 13px; color: var(--text-gray); margin-bottom: 24px; }
+
+    .pc-features {
+        list-style: none; padding: 0; margin: 0 0 32px 0;
+        border-top: 1px solid var(--slate-border);
+        padding-top: 24px;
+    }
+    
+    .pc-features li {
+        display: flex; align-items: flex-start;
+        font-size: 13px; color: var(--dark); font-weight: 500; margin-bottom: 12px;
+    }
+    .pc-features li i {
+        color: #10b981; margin-right: 12px; font-size: 16px; margin-top: -1px;
+    }
+
+    .btn-buy {
+        width: 100%; height: 48px; border-radius: 12px;
+        background: rgba(37, 99, 235, 0.1); color: var(--primary);
+        border: none; font-weight: 700; font-size: 14px;
+        transition: all 0.3s ease; margin-top: auto;
+    }
+    
+    .btn-buy:hover { background: var(--primary); color: white; }
+    .premium-card.popular .btn-buy { background: var(--primary); color: white; }
+    .premium-card.popular .btn-buy:hover { background: #1d4ed8; }
+
+    @media (max-width: 991px) {
+        .plans-wrapper { flex-direction: column; }
+        .plans-nav { width: 100%; display: flex; overflow-x: auto; padding: 12px; }
+        .plan-cat { flex-shrink: 0; margin-bottom: 0; margin-right: 8px; }
+        .plan-cat i { display: none; }
+    }
+</style>
+
+<div class="dashboard-header">
+    <h2>Home Wi-Fi Plans</h2>
+    <p>Flexible fiber connections designed for streaming, gaming, and working from home.</p>
+</div>
+
+<div class="plans-wrapper">
+
+    <!-- LEFT CATEGORY -->
+    <div class="plans-nav">
+        <div onclick="loadPlans('best')" class="plan-cat active" id="cat-best">Featured Offers <i class="bi bi-chevron-right"></i></div>
+        <div onclick="loadPlans('annual')" class="plan-cat" id="cat-annual">12 Months (Pro) <i class="bi bi-chevron-right"></i></div>
+        <div onclick="loadPlans('semi')" class="plan-cat" id="cat-semi">6 Months <i class="bi bi-chevron-right"></i></div>
+        <div onclick="loadPlans('monthly')" class="plan-cat" id="cat-monthly">Monthly <i class="bi bi-chevron-right"></i></div>
+    </div>
+
+    <!-- RIGHT PLANS -->
+    <div class="plans-grid" id="plan-content">
+        <!-- JS Injected Content -->
+    </div>
+
+</div>
+
+<script>
+    function setActive(id) {
+        document.querySelectorAll(".plan-cat").forEach(el => el.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+    }
+
+    function planCard(speed, price, valText, features, isPopular = false) {
+        let fList = features.map(f => `<li><i class="bi bi-check-circle-fill"></i> ${f}</li>`).join('');
+        let popClass = isPopular ? "popular" : "";
+        let ribbon = isPopular ? `<div class="ribbon">Most Popular</div>` : "";
+
+        return `
+        <div class="premium-card ${popClass}">
+            ${ribbon}
+            <div class="pc-speed">${speed}</div>
+            <div class="pc-price">₹${price} <span>/ total</span></div>
+            <div class="pc-val">Valid for ${valText}</div>
+            <ul class="pc-features">
+                ${fList}
+            </ul>
+            <button class="btn-buy">Select Plan</button>
+        </div>`;
+    }
+
+    function loadPlans(type){
+        let content = document.getElementById("plan-content");
+        
+        // Add a small fade effect on click
+        content.style.opacity = 0;
+        
+        setTimeout(() => {
+            if(type === 'best'){
+                setActive('cat-best');
+                content.innerHTML = `
+                    ${planCard('100 Mbps Symmetric', '4,999', '12 Months', ['Unlimited Data (FUP applies)', 'Free Dual-band Router', 'Zero Installation Fee', 'Amazon Prime + 13 OTTs'], true)}
+                    ${planCard('60 Mbps Everyday', '2,999', '6 Months', ['Unlimited Data', 'Free Single-band Router', 'Basic OTT Bundle (Zee5, SonyLiv)'], false)}
+                    ${planCard('30 Mbps Starter', '1,499', '3 Months', ['Unlimited Data', 'Good for 2-3 devices', 'Standard Installation'], false)}
+                `;
+            } else if(type === 'annual'){
+                setActive('cat-annual');
+                content.innerHTML = `
+                    ${planCard('Gigabit 1 Gbps', '11,999', '12 Months', ['Unlimited Data', 'Wi-Fi 6 Mesh Router Included', 'Priority 24/7 Support', 'All Premium OTTs Included'], false)}
+                    ${planCard('300 Mbps PRO', '8,999', '12 Months', ['Unlimited Data', 'Free Dual-band Router', 'Static IP Available', 'Premium OTT Bundle'], true)}
+                    ${planCard('100 Mbps Essential', '4,999', '12 Months', ['Unlimited Data', 'Free Dual-band Router', 'Zero Installation Fee', 'Standard OTTs'], false)}
+                `;
+            } else if(type === 'semi'){
+                setActive('cat-semi');
+                content.innerHTML = `
+                    ${planCard('300 Mbps PRO', '4,799', '6 Months', ['Unlimited Data', 'Dual-band Router (Refundable Deposit)', 'Multiplayer Gaming Optimized'], true)}
+                    ${planCard('100 Mbps Everyday', '2,999', '6 Months', ['Unlimited Data', 'Dual-band Router', 'Basic OTT Bundle'], false)}
+                `;
+            } else if(type === 'monthly'){
+                setActive('cat-monthly');
+                content.innerHTML = `
+                    ${planCard('100 Mbps', '799', '1 Month', ['Unlimited Data', 'Hardware deposit required', '₹500 Installation Free'], true)}
+                    ${planCard('60 Mbps', '599', '1 Month', ['Unlimited Data', 'Hardware deposit required', '₹500 Installation Free'], false)}
+                    ${planCard('30 Mbps', '499', '1 Month', ['Unlimited Data', 'Hardware deposit required', 'Basic web browsing'], false)}
+                `;
+            }
+            content.style.opacity = 1;
+            content.style.transition = "opacity 0.3s ease";
+        }, 150);
+    }
+
+    /* DEFAULT LOAD */
+    setTimeout(() => {
+        loadPlans('best');
+    }, 100);
+</script>
+{% endblock %}

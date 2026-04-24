@@ -1,0 +1,176 @@
+{% extends "base_business.html" %}
+
+{% block content %}
+<style>
+    .dashboard-header { margin-bottom: 24px; }
+    .dashboard-header h2 { font-weight: 700; color: var(--dark); margin: 0; font-size: 24px; }
+    .dashboard-header p { color: var(--text-gray); margin: 4px 0 0 0; font-size: 14px; }
+
+    .tickets-wrapper {
+        display: flex;
+        gap: 32px;
+        align-items: flex-start;
+    }
+
+    /* LEFT SIDE: FORM */
+    .ticket-form-card {
+        flex: 1;
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 32px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--slate-border);
+        position: sticky;
+        top: 24px;
+    }
+
+    .ticket-form-card h5 {
+        font-weight: 700; color: var(--dark); margin-bottom: 24px; font-size: 18px;
+    }
+
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--dark); margin-bottom: 8px; }
+    
+    .form-control, .form-select {
+        width: 100%; border-radius: 12px; border: 1px solid var(--slate-border); 
+        background: var(--slate); padding: 12px 16px; font-size: 14px; 
+        transition: all 0.2s ease; color: var(--dark); box-sizing: border-box;
+    }
+    
+    .form-control:focus, .form-select:focus { 
+        outline: none; border-color: var(--primary); background: #ffffff; 
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); 
+    }
+
+    textarea.form-control { resize: vertical; min-height: 100px; }
+
+    .btn-submit {
+        width: 100%; height: 48px; border-radius: 12px;
+        background: var(--primary); color: white;
+        border: none; font-weight: 600; font-size: 15px;
+        transition: all 0.3s ease; margin-top: 12px;
+    }
+    .btn-submit:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+    /* RIGHT SIDE: TICKET LIST */
+    .tickets-list-card {
+        flex: 1.5;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .ticket-item {
+        background: #ffffff; border-radius: 16px; padding: 24px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02); border: 1px solid var(--slate-border);
+        display: flex; justify-content: space-between; align-items: flex-start;
+        transition: all 0.2s ease;
+    }
+    .ticket-item:hover {
+        transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); border-color: #cbd5e1;
+    }
+
+    .ticket-info { max-width: 75%; }
+    .ticket-title { font-weight: 700; color: var(--dark); font-size: 16px; margin-bottom: 4px; }
+    .ticket-meta { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--text-gray); margin-bottom: 12px; font-weight: 500; }
+    .ticket-desc { font-size: 14px; color: var(--dark); margin: 0; line-height: 1.5; opacity: 0.9; }
+
+    .ticket-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 16px; }
+
+    /* STATUS BADGES */
+    .status-badge {
+        padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .status-badge.pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.2); }
+    .status-badge.resolved { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.2); }
+    .status-badge.open { background: rgba(37, 99, 235, 0.1); color: var(--primary); border: 1px solid rgba(37,99,235,0.2); }
+
+    .empty-state { text-align: center; padding: 48px 24px; color: var(--text-gray); background: #ffffff; border-radius: 16px; border: 1px dashed var(--slate-border); }
+    .empty-state i { font-size: 48px; color: #cbd5e1; margin-bottom: 16px; display: block; }
+
+    @media(max-width: 991px) {
+        .tickets-wrapper { flex-direction: column; }
+        .ticket-form-card, .tickets-list-card { width: 100%; position: static; }
+        .ticket-item { flex-direction: column; gap: 16px; }
+        .ticket-info { max-width: 100%; }
+        .ticket-actions { align-items: flex-start; flex-direction: row; width: 100%; justify-content: space-between; align-items: center; }
+    }
+</style>
+
+<div class="dashboard-header">
+    <h2>Business Support Tickets</h2>
+    <p>Raise priority service tickets for your office connection.</p>
+</div>
+
+<div class="tickets-wrapper">
+
+    <!-- LEFT SIDE: FORM -->
+    <div class="ticket-form-card">
+        <h5><i class="bi bi-pencil-square" style="color: var(--primary); margin-right: 8px;"></i> Open Priority Ticket</h5>
+        
+        <form action="/add_business_service_request" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-group">
+                <label class="form-label">Issue Title</label>
+                <input type="text" class="form-control" name="title" placeholder="e.g. Office line down" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select class="form-select" name="category">
+                    <option>Internet Issue</option>
+                    <option>Billing</option>
+                    <option>Technical</option>
+                    <option>Installation</option>
+                    <option>Hardware Replacement</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Detailed Description</label>
+                <textarea class="form-control" name="description" placeholder="Please describe the problem your business is facing..." required></textarea>
+            </div>
+
+            <button class="btn-submit">Submit Priority Ticket</button>
+        </form>
+    </div>
+
+    <!-- RIGHT SIDE: TICKET LIST -->
+    <div class="tickets-list-card">
+        <h5 style="font-weight: 700; color: var(--dark); margin: 0 0 8px 0; font-size: 18px;">Active Office Tickets</h5>
+        
+        {% if tickets %}
+            {% for t in tickets %}
+            <div class="ticket-item">
+                <div class="ticket-info">
+                    <div class="ticket-title">{{ t[0] }}</div>
+                    <div class="ticket-meta">
+                        <span><i class="bi bi-tag-fill"></i> {{ t[1] }}</span>
+                        <span>Opened: {{ t[4].strftime('%d %b %Y') if t[4] else 'N/A' }}</span>
+                    </div>
+                    <p class="ticket-desc">{{ t[2] }}</p>
+                </div>
+                
+                <div class="ticket-actions">
+                    <span class="status-badge {{ t[3]|lower }}">
+                        {% if t[3]|lower == 'pending' %}<i class="bi bi-clock-history"></i>
+                        {% elif t[3]|lower == 'resolved' %}<i class="bi bi-check2-circle"></i>
+                        {% else %}<i class="bi bi-envelope"></i>{% endif %}
+                        {{ t[3].upper() }}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <h6 style="font-weight: 600; color: var(--dark); margin-bottom: 4px;">No office tickets found</h6>
+                <p style="font-size: 14px; margin: 0;">Your business has no active priority tickets.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}

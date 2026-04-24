@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartApp Broadband</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/static/images/logo1.png">
+    
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ===== GLOBAL ===== */
+        html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+        body { 
+            font-family: 'Inter', sans-serif; background-color: #ffffff; color: #333; 
+            opacity: 0; animation: fadeInBody 0.6s ease forwards;
+        }
+        @keyframes fadeInBody { from { opacity: 0; } to { opacity: 1; } }
+        
+        .section-padding { padding: 60px 0; }
+        .bg-light-tint { background-color: #f8faff; border-top: 1px solid rgba(0,0,0,0.02); border-bottom: 1px solid rgba(0,0,0,0.02); }
+        .bg-business-tint { background-color: #f1f5f9; }
+
+        /* ===== SCROLL REVEAL ===== */
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s ease-out; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        
+        /* ===== NAVBAR ===== */
+        .navbar { padding: 12px 0; background-color: rgba(255, 255, 255, 0.98) !important; backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0,0,0,0.03); }
+        .navbar .container-fluid { position: relative; }
+        @media (min-width: 992px) {
+            .nav-links-wrapper { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; white-space: nowrap; }
+        }
+        @media (max-width: 991px) {
+            .navbar { padding: 8px 0; }
+            .btn-login { padding: 8px 20px !important; font-size: 14px !important; }
+            .navbar-brand img { height: 55px !important; }
+        }
+        .nav-link-custom { font-size: 17px; font-weight: 600; color: #0f172a; margin: 0 25px; transition: all 0.3s ease; white-space: nowrap; text-decoration: none !important; letter-spacing: -0.01em; }
+        .nav-link-custom:hover { color: #0d6efd; text-decoration: none !important; transform: translateY(-1px); }
+        .btn-login { padding: 10px 30px; font-size: 15px; font-weight: 700; border-radius: 50px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15); border: none !important; color: white !important; }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(13, 110, 253, 0.25); color: white !important; }
+        .navbar-brand { transition: transform 0.3s ease; padding: 0 !important; cursor: pointer; }
+        .navbar-brand:hover { transform: scale(1.05); }
+
+        /* ===== CARDS & BUTTONS ===== */
+        .btn { transition: all 0.3s ease; }
+        .btn:hover { transform: translateY(-2px); opacity: 0.95; }
+        .connection-card { border-radius: 24px; transition: all 0.3s ease; border: 2px solid transparent; }
+        .connection-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important; }
+        .connection-card.active-selection { border-color: #198754 !important; box-shadow: 0 8px 25px rgba(25, 135, 84, 0.15) !important; }
+
+        /* ===== HERO ===== */
+        .hero { padding: 30px 40px 10px 40px; }
+        .hero-card { border-radius: 24px; overflow: hidden; position: relative; color: white; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        .hero-card::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6)); pointer-events: none; }
+        .hero-card img { width: 100%; height: 350px; object-fit: cover; transition: transform 0.5s ease; }
+        .hero-card:hover img { transform: scale(1.03); }
+        .hero-text { position: absolute; bottom: 40px; left: 40px; z-index: 2; }
+        .hero-text h2 { font-weight: 600; font-size: 28px; margin-bottom: 0; }
+        .hero-text p { font-size: 16px; opacity: 0.9; margin-bottom: 0; }
+
+        /* ===== WIFI CARDS (DEEP DIVE) ===== */
+        .wifi-card { border-radius: 20px; overflow: hidden; position: relative; color: white; }
+        .wifi-card img { width: 100%; height: 320px; object-fit: cover; filter: brightness(0.7); transition: filter 0.3s ease; }
+        .wifi-card:hover img { filter: brightness(0.85); }
+        .wifi-text { position: absolute; top: 20%; left: 30px; }
+        .wifi-text h3 { font-weight: 600; }
+
+        /* ===== TRUST & METRICS (MODERN) ===== */
+        .stat-card-modern { border-radius: 20px; transition: all 0.3s ease; }
+        .stat-card-modern:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(13, 110, 253, 0.08) !important; }
+        .stat-icon-wrapper { width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; background: #f0f7ff; border-radius: 18px; color: #0d6efd; }
+        .stat-number-modern { font-size: 34px; font-weight: 700; color: #1a1d23; margin-bottom: 2px; }
+        
+        .coverage-container { border: 1px solid rgba(0,0,0,0.04); }
+        .city-pill-premium { background: #f8faff; border: 1px solid #e9ecef; padding: 10px 22px; border-radius: 12px; font-size: 14px; font-weight: 600; color: #495057; transition: all 0.3s ease; cursor: default; }
+        .city-pill-premium:hover { background: #0d6efd; color: #fff; border-color: #0d6efd; transform: translateY(-3px) scale(1.05); box-shadow: 0 5px 15px rgba(13, 110, 253, 0.2); }
+        .opacity-05 { opacity: 0.05; }
+
+        /* ===== CAROUSEL FIX ===== */
+        .carousel-control-prev-icon, .carousel-control-next-icon { background-color: rgba(0,0,0,0.5); border-radius: 50%; padding: 20px; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 992px) {
+            .navbar { padding: 10px 20px; }
+            .stat-card { border-right: none; border-bottom: 1px solid rgba(0,0,0,0.1); }
+            .stat-card:last-child { border-bottom: none; }
+        }
+        @media (max-width: 768px) {
+            .hero { padding: 20px; }
+            .hero-card img { height: 220px; }
+            .hero-text h2 { font-size: 18px; }
+            .hero-text p { font-size: 12px; }
+            #plans .col-md-3 { flex: 0 0 100%; max-width: 100%; }
+        }
+    </style>
+</head>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<body>
+    <!-- ===== NAVBAR ===== -->
+    <nav class="navbar navbar-expand-lg bg-white shadow-sm sticky-top">
+        <div class="container-fluid px-lg-5 d-flex align-items-center">
+            <!-- Brand -->
+            <a class="navbar-brand d-flex align-items-center" href="/" onclick="window.location.href = window.location.origin; return false;">
+                <img src="{{ url_for('static', filename='images/logo1.png') }}" height="70" class="py-1">
+            </a>
+
+            <!-- Mobile Login Shortcut (Visible only on Mobile/Tablet) -->
+            <a href="/login" class="btn btn-primary btn-login d-lg-none ms-auto me-3 d-flex align-items-center justify-content-center">
+                <span>Login</span>
+            </a>
+
+            <!-- Toggler -->
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navCollapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Collapsible Menu -->
+            <div class="collapse navbar-collapse" id="navCollapse">
+                <div class="nav-links-wrapper">
+                    <div class="mx-auto navbar-nav d-flex align-items-center">
+                        <a href="#connection-selection" class="nav-link-custom" onclick="selectRole('home')">Individual</a>
+                        <a href="#connection-selection" class="nav-link-custom" onclick="selectRole('business')">Business</a>
+                        <a href="#plans" class="nav-link-custom">Plans</a>
+                        <a href="#" class="nav-link-custom">Get SmartApp</a>
+                        <a href="#contact" class="nav-link-custom">Contact</a>
+                    </div>
+                </div>
+                
+                <!-- Desktop Login Button (Visible only on Desktop) -->
+                <div class="ms-lg-auto d-none d-lg-block">
+                    <a href="/login" class="btn btn-primary btn-login text-nowrap">Login / Sign In</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== SECTION 1: HERO ===== -->
+    <div id="heroSlider" class="carousel slide container hero" data-bs-ride="carousel" data-bs-interval="3000">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="hero-card">
+                            <img src="{{ url_for('static', filename='images/img1.jpg') }}">
+                            <div class="hero-text">
+                                <h2>Superfast Fiber Plans</h2>
+                                <p>High speed internet for your home</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="hero-card">
+                            <img src="{{ url_for('static', filename='images/img 4.jpg') }}">
+                            <div class="hero-text">
+                                <h2>Work From Home</h2>
+                                <p>Stable connection for productivity</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="hero-card">
+                            <img src="{{ url_for('static', filename='images/img5.jpg') }}">
+                            <div class="hero-text">
+                                <h2>Unlimited Entertainment</h2>
+                                <p>Stream 4K without limits</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="hero-card">
+                            <img src="{{ url_for('static', filename='images/img2.jpg') }}">
+                            <div class="hero-text">
+                                <h2>Smart WiFi</h2>
+                                <p>Full home coverage guaranteed</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroSlider" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroSlider" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
+    </div>
+
+    <!-- ===== SECTION 2: CONVINCER (TOP FEATURES) ===== -->
+    <div class="bg-light-tint section-padding reveal">
+        <div class="container">
+            <h2 class="fw-bold text-center mb-5">Why Business & Homes trust SmartApp</h2>
+            <div class="row g-4">
+                <div class="col-md-3 text-center px-4">
+                    <i class="bi bi-speedometer2 fs-1 text-primary"></i>
+                    <h5 class="mt-3 fw-bold">Ultra-Fast Fiber</h5>
+                    <p class="small text-muted">Symmetric speeds for heavy streaming and lightning-fast uploads.</p>
+                </div>
+                <div class="col-md-3 text-center px-4">
+                    <i class="bi bi-reception-4 fs-1 text-primary"></i>
+                    <h5 class="mt-3 fw-bold">Maximum Coverage</h5>
+                    <p class="small text-muted">Signal strength that penetrates walls for zero dead-zones.</p>
+                </div>
+                <div class="col-md-3 text-center px-4">
+                    <i class="bi bi-shield-lock-fill fs-1 text-primary"></i>
+                    <h5 class="mt-3 fw-bold">Bank-Grade Security</h5>
+                    <p class="small text-muted">Advanced firewall and security measures to protect your data.</p>
+                </div>
+                <div class="col-md-3 text-center px-4">
+                    <i class="bi bi-headset fs-1 text-primary"></i>
+                    <h5 class="mt-3 fw-bold">24/7 Support</h5>
+                    <p class="small text-muted">Always-on customer care for technical and billing help.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SECTION 3: DECISION GATEWAY ===== -->
+    <section id="connection-selection" class="container reveal" style="padding: 60px 0;">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Find the Right Connection for You</h2>
+            <p class="text-muted">Discover tailored fiber solutions for your specific environment.</p>
+        </div>
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-5">
+                <div id="card-home" class="card connection-card border-0 shadow-sm h-100 p-4 bg-white" onclick="selectRole('home')">
+                    <div class="card-body text-center" style="cursor: pointer;">
+                        <div class="selection-status d-none mb-2"><span class="badge rounded-pill bg-success px-3 py-2"><i class="bi bi-check-circle-fill me-2"></i>Selected</span></div>
+                        <i class="bi bi-house-heart fs-1 text-primary mb-3"></i>
+                        <h3 class="fw-bold mb-2">Individual</h3>
+                        <p class="text-muted mb-4 text-center">Fast, reliable internet for streaming, gaming, and home browsing.</p>
+                        <div class="d-grid gap-2">
+                            <a href="#plans" class="btn btn-primary rounded-pill fw-semibold">Explore Home Plans</a>
+                            <a href="/login" class="btn btn-outline-primary rounded-pill fw-semibold">Login / Register</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div id="card-business" class="card connection-card border-0 shadow-sm h-100 p-4 bg-business-tint" onclick="selectRole('business')">
+                    <div class="card-body text-center" style="cursor: pointer;">
+                        <div class="selection-status d-none mb-2"><span class="badge rounded-pill bg-success px-3 py-2"><i class="bi bi-check-circle-fill me-2"></i>Selected</span></div>
+                        <i class="bi bi-briefcase fs-1 text-primary mb-3"></i>
+                        <h3 class="fw-bold mb-2">Business</h3>
+                        <p class="text-muted mb-4 text-center">Enterprise-grade connectivity designed for offices and growth.</p>
+                        <div class="d-grid gap-2">
+                            <a href="#plans" class="btn btn-primary rounded-pill fw-semibold">View Business Plans</a>
+                            <a href="/login" class="btn btn-outline-primary rounded-pill fw-semibold">Login / Register</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== SECTION 4: PLANS ===== -->
+    <section id="plans" class="bg-light-tint section-padding reveal">
+        <div class="container text-center">
+            <h2 class="fw-bold mb-3">Choose the plan that fits your needs</h2>
+            <p id="selectionViewText" class="text-muted mb-5">Currently viewing <span class="fw-bold text-primary">Individual</span> plans</p>
+            
+            <!-- TOGGLE -->
+            <div class="d-flex justify-content-center mb-5">
+                <div style="background:#f1f3f5; border-radius:50px; padding:5px; width:300px; display:flex;">
+                    <button id="btnHome" class="btn w-50 rounded-pill fw-semibold" onclick="selectRole('home', true)">Home WiFi</button>
+                    <button id="btnOffice" class="btn w-50 rounded-pill fw-semibold" onclick="selectRole('business', true)">Office WiFi</button>
+                </div>
+            </div>
+            <!-- HOME PLANS -->
+            <div id="homePlans" class="row g-4">
+                <div class="col-md-3"><div class="p-4 shadow-sm bg-white h-100 rounded-4"> <p class="text-primary fw-bold small mb-1">BASIC</p> <h3 class="fw-bold">₹499</h3> <p class="small mt-3">50 Mbps | 30 Days</p> <a href="/login" class="btn btn-light w-100 rounded-pill mt-3">Choose Plan</a> </div></div>
+                <div class="col-md-3"><div class="p-4 shadow-sm bg-white h-100 rounded-4"> <p class="text-primary fw-bold small mb-1">STANDARD</p> <h3 class="fw-bold">₹799</h3> <p class="small mt-3">100 Mbps | 30 Days</p> <a href="/login" class="btn btn-light w-100 rounded-pill mt-3">Choose Plan</a> </div></div>
+                <div class="col-md-3"><div class="p-4 shadow bg-white h-100 rounded-4 border border-primary scale-105 position-relative"> <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger">Popular</span> <p class="text-primary fw-bold small mb-1">PREMIUM</p> <h3 class="fw-bold">₹999</h3> <p class="small mt-3">200 Mbps | 30 Days</p> <a href="/login" class="btn btn-primary w-100 rounded-pill mt-3">Get Started</a> </div></div>
+                <div class="col-md-3"><div class="p-4 shadow-sm bg-white h-100 rounded-4"> <p class="text-primary fw-bold small mb-1">ULTIMATE</p> <h3 class="fw-bold">₹1499</h3> <p class="small mt-3">300 Mbps | 30 Days</p> <a href="/login" class="btn btn-light w-100 rounded-pill mt-3">Choose Plan</a> </div></div>
+            </div>
+            <!-- OFFICE PLANS -->
+            <div id="officePlans" class="row g-4 d-none">
+                <div class="col-md-3">
+                    <div class="p-5 shadow-lg border-0 h-100 rounded-4" style="background: #1a1d23; border: 1px solid rgba(255,255,255,0.05); transition: transform 0.3s ease;"> 
+                        <p class="text-info fw-bold small mb-2" style="letter-spacing: 1px;">STARTER PRO</p> 
+                        <h3 class="fw-bold text-white mb-3">₹999</h3> 
+                        <div class="mb-4 text-white-50 small">
+                            <div class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i>100 Mbps Unlimited</div>
+                            <div><i class="bi bi-check2-circle text-info me-2"></i>30 Days Validity</div>
+                        </div>
+                        <a href="/login" class="btn btn-info text-white w-100 rounded-pill py-2 fw-bold shadow-sm" style="background: linear-gradient(45deg, #0dcaf0, #0aa2c0); border: none;">Get Started</a> 
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-5 shadow-lg border-0 h-100 rounded-4" style="background: #1a1d23; border: 1px solid rgba(255,255,255,0.05); transition: transform 0.3s ease;"> 
+                        <p class="text-info fw-bold small mb-2" style="letter-spacing: 1px;">BUSINESS PRO</p> 
+                        <h3 class="fw-bold text-white mb-3">₹1999</h3> 
+                        <div class="mb-4 text-white-50 small">
+                            <div class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i>300 Mbps Unlimited</div>
+                            <div><i class="bi bi-check2-circle text-info me-2"></i>Best for SME</div>
+                        </div>
+                        <a href="/login" class="btn btn-info text-white w-100 rounded-pill py-2 fw-bold shadow-sm" style="background: linear-gradient(45deg, #0dcaf0, #0aa2c0); border: none;">Get Started</a> 
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-5 shadow-lg border-0 h-100 rounded-4" style="background: #1a1d23; border: 2px solid #0dcaf0; position: relative;"> 
+                        <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-info text-dark scale-110" style="font-size: 0.7rem; font-weight: 800;">BEST VALUE</span>
+                        <p class="text-info fw-bold small mb-2" style="letter-spacing: 1px;">RELIANT ENT</p> 
+                        <h3 class="fw-bold text-white mb-3">₹2999</h3> 
+                        <div class="mb-4 text-white-50 small">
+                            <div class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i>500 Mbps Dedicated</div>
+                            <div><i class="bi bi-check2-circle text-info me-2"></i>SLA Guaranteed</div>
+                        </div>
+                        <a href="/login" class="btn btn-info text-white w-100 rounded-pill py-2 fw-bold shadow-sm" style="background: linear-gradient(45deg, #0dcaf0, #0aa2c0); border: none;">Power Office</a> 
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-5 shadow-lg border-0 h-100 rounded-4" style="background: #1a1d23; border: 1px solid rgba(255,255,255,0.05); transition: transform 0.3s ease;"> 
+                        <p class="text-info fw-bold small mb-2" style="letter-spacing: 1px;">ELITE DEDICATED</p> 
+                        <h3 class="fw-bold text-white mb-3">₹4999</h3> 
+                        <div class="mb-4 text-white-50 small">
+                            <div class="mb-2"><i class="bi bi-check2-circle text-info me-2"></i>1 Gbps Hyper-speed</div>
+                            <div><i class="bi bi-check2-circle text-info me-2"></i>24/7 Priority Ops</div>
+                        </div>
+                        <a href="/login" class="btn btn-info text-white w-100 rounded-pill py-2 fw-bold shadow-sm" style="background: linear-gradient(45deg, #0dcaf0, #0aa2c0); border: none;">Scale Up</a> 
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== SECTION 5: DYNAMIC DEEP-DIVE ===== -->
+    <div id="deepDiveSection" class="section-padding reveal">
+        <div class="container overflow-hidden">
+            <h2 id="deepDiveHeading" class="text-center fw-bold mb-5">Seamless internet connectivity for everyone</h2>
+            <div id="deepDiveCards" class="row g-4 transition-all">
+                <!-- Content injected via selectRole() -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SECTION 6: UTILITY ROW ===== -->
+    <div class="bg-light-tint section-padding">
+        <div class="container">
+            <div class="row g-4 text-center">
+                <div class="col-md-3 px-4"><div class="bg-white p-4 rounded-4 shadow-sm"> <i class="bi bi-router fs-2 text-primary"></i> <p class="mt-2 fw-semibold mb-0">Get WiFi</p> </div></div>
+                <div class="col-md-3 px-4"><div class="bg-white p-4 rounded-4 shadow-sm"> <i class="bi bi-arrow-up-circle fs-2 text-primary"></i> <p class="mt-2 fw-semibold mb-0">Upgrade Plan</p> </div></div>
+                <div class="col-md-3 px-4"><div class="bg-white p-4 rounded-4 shadow-sm"> <i class="bi bi-calendar-check fs-2 text-primary"></i> <p class="mt-2 fw-semibold mb-0">Schedule Setup</p> </div></div>
+                <div class="col-md-3 px-4"><div class="bg-white p-4 rounded-4 shadow-sm"> <i class="bi bi-headset fs-2 text-primary"></i> <p class="mt-2 fw-semibold mb-0">Help Desk</p> </div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SECTION 7: TRUST & COVERAGE ===== -->
+    <div class="bg-light-tint section-padding reveal">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold">Trusted by Thousands</h2>
+                <p class="text-muted">A massive infrastructure powering India's digital growth.</p>
+            </div>
+            
+            <!-- Stats Grid -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <div class="stat-card-modern p-4 h-100 bg-white shadow-sm border-0 d-flex align-items-center">
+                        <div class="stat-icon-wrapper me-4">
+                            <i class="bi bi-broadcast fs-1 text-primary-emphasis opacity-50"></i>
+                        </div>
+                        <div>
+                            <p class="stat-number-modern">600+</p>
+                            <p class="small fw-semibold text-muted mb-0">Points of Presence (PoPs)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card-modern p-4 h-100 bg-white shadow-sm border-0 d-flex align-items-center">
+                        <div class="stat-icon-wrapper me-4">
+                            <i class="bi bi-geo-alt fs-1 text-primary-emphasis opacity-50"></i>
+                        </div>
+                        <div>
+                            <p class="stat-number-modern">300+</p>
+                            <p class="small fw-semibold text-muted mb-0">Service Locations</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card-modern p-4 h-100 bg-white shadow-sm border-0 d-flex align-items-center">
+                        <div class="stat-icon-wrapper me-4">
+                            <i class="bi bi-people fs-1 text-primary-emphasis opacity-50"></i>
+                        </div>
+                        <div>
+                            <p class="stat-number-modern">1200+</p>
+                            <p class="small fw-semibold text-muted mb-0">Enterprise Customers</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coverage Section -->
+            <div class="coverage-container p-5 rounded-5 bg-white shadow-sm position-relative overflow-hidden">
+                <!-- Background Pattern -->
+                <div class="position-absolute top-0 start-0 w-100 h-100 opacity-05 pointer-events-none" style="background-image: radial-gradient(#0d6efd 1px, transparent 1px); background-size: 20px 20px;"></div>
+                
+                <div class="row align-items-center position-relative">
+                    <div class="col-lg-4 text-center text-lg-start mb-4 mb-lg-0">
+                        <h3 class="fw-bold mb-3">Expanding Our <span class="text-primary">Network</span></h3>
+                        <p class="text-muted small mb-0">We are rapidly growing our fiber footprint across major hubs and emerging cities in India.</p>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-2">
+                            <span class="city-pill-premium">Pune</span> <span class="city-pill-premium">Mumbai</span> <span class="city-pill-premium">Navi Mumbai</span>
+                            <span class="city-pill-premium">Thane</span> <span class="city-pill-premium">Nagpur</span> <span class="city-pill-premium">Aurangabad</span>
+                            <span class="city-pill-premium">Sangli</span> <span class="city-pill-premium">Satara</span> <span class="city-pill-premium">Indore</span>
+                            <span class="city-pill-premium">Bhopal</span> <span class="city-pill-premium">Raipur</span> <span class="city-pill-premium">Patna</span> 
+                            <span class="city-pill-premium">Srinagar</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-dark text-white py-5">
+        <div class="container text-start">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <h5 class="fw-bold mb-3">Smartware Technologies Pvt. Ltd.</h5>
+                    <p class="small text-white-50">Providing lightning-fast fiber connectivity and enterprise-grade infrastructure across multiple states.</p>
+                </div>
+                <div id="contact" class="col-md-4 ms-auto border-start border-secondary ps-lg-5">
+                    <h5 class="fw-bold mb-3">Contact Us</h5>
+                    <p class="small text-white-50 mb-2">Office No.509 & 510 5th Floor, Lloyd Chamber Block 3, Mangalwar Peth, Pune 411 011</p>
+                    <p class="small text-white-50 mb-1">Email: <a href="mailto:cc@telesmart.in" class="text-white-50 text-decoration-none">cc@telesmart.in</a></p>
+                    <p class="small text-white-50">Phone: 8886957957</p>
+                </div>
+            </div>
+            <hr class="mt-4 border-secondary opacity-25">
+            <p class="small text-center text-white-50 mb-0">© 2026 SmartApp Broadband. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const homeContent = `
+            <div class="col-md-6">
+                <div class="wifi-card">
+                    <img src="{{ url_for('static', filename='images/img3.jpg') }}">
+                    <div class="wifi-text">
+                        <h3 class="mb-0">Entertainment Ready</h3>
+                        <p class="mt-1">Stream 4K lag-free on all devices.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="wifi-card">
+                    <img src="{{ url_for('static', filename='images/home.jpg') }}">
+                    <div class="wifi-text">
+                        <h3 class="mb-0">Smart Home Life</h3>
+                        <p class="mt-1">Connect all your IoT and security devices.</p>
+                    </div>
+                </div>
+            </div>`;
+        
+        const businessContent = `
+            <div class="col-md-6">
+                <div class="wifi-card">
+                    <img src="{{ url_for('static', filename='images/office.jpg') }}">
+                    <div class="wifi-text">
+                        <h3 class="mb-0">99.9% Uptime SLA</h3>
+                        <p class="mt-1">Dedicated fiber with reliable failover support.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="wifi-card">
+                    <img src="{{ url_for('static', filename='images/smart.jpg') }}">
+                    <div class="wifi-text">
+                        <h3 class="mb-0">Enterprise Connectivity</h3>
+                        <p class="mt-1">Static IPs and scalable bandwidth for growth.</p>
+                    </div>
+                </div>
+            </div>`;
+
+        function selectRole(role, onlyToggle = false) {
+            const btnHome = document.getElementById('btnHome');
+            const btnOffice = document.getElementById('btnOffice');
+            const homePlans = document.getElementById('homePlans');
+            const officePlans = document.getElementById('officePlans');
+            const deepDiveCards = document.getElementById('deepDiveCards');
+            const heading = document.getElementById('deepDiveHeading');
+            
+            const cardHome = document.getElementById('card-home');
+            const cardBusiness = document.getElementById('card-business');
+            const viewText = document.getElementById('selectionViewText');
+
+            if (role === 'home') {
+                btnHome.style.background = '#0d6efd'; btnHome.style.color = 'white';
+                btnOffice.style.background = 'none'; btnOffice.style.color = 'inherit';
+                homePlans.classList.remove('d-none'); officePlans.classList.add('d-none');
+                deepDiveCards.innerHTML = homeContent;
+                heading.innerText = "Seamless internet connectivity for your home";
+                
+                cardHome.classList.add('active-selection');
+                cardBusiness.classList.remove('active-selection');
+                cardHome.querySelector('.selection-status').classList.remove('d-none');
+                cardBusiness.querySelector('.selection-status').classList.add('d-none');
+                viewText.innerHTML = `Currently viewing <span class="fw-bold text-primary">Individual</span> plans`;
+            } else {
+                btnOffice.style.background = '#0d6efd'; btnOffice.style.color = 'white';
+                btnHome.style.background = 'none'; btnHome.style.color = 'inherit';
+                officePlans.classList.remove('d-none'); homePlans.classList.add('d-none');
+                deepDiveCards.innerHTML = businessContent;
+                heading.innerText = "Empower your business with high-speed fiber";
+                
+                cardBusiness.classList.add('active-selection');
+                cardHome.classList.remove('active-selection');
+                cardBusiness.querySelector('.selection-status').classList.remove('d-none');
+                cardHome.querySelector('.selection-status').classList.add('d-none');
+                viewText.innerHTML = `Currently viewing <span class="fw-bold text-primary">Business</span> plans`;
+            }
+            if(!onlyToggle) window.location.hash = "plans";
+        }
+
+        // Initialize (passing true to prevent scrolling on load)
+        selectRole('home', true);
+
+        // Scroll Reveal logic
+        const revealContent = () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        };
+        document.addEventListener('DOMContentLoaded', revealContent);
+    </script>
+</body>
+</html>

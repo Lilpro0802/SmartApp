@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+
+.chat-header {
+    background: linear-gradient(135deg, #3b82f6, #60a5fa);
+    padding: 18px;
+    border-radius: 18px;
+    color: white;
+    margin-bottom: 20px;
+}
+
+/* MAIN */
+.chat-container {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    height: 520px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+/* CHAT AREA */
+.chat-box {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* MESSAGE BASE */
+.msg {
+    max-width: 65%;
+    padding: 10px 14px;
+    border-radius: 16px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* USER */
+.user {
+    background: #2563eb;
+    color: white;
+    margin-left: auto;
+    border-bottom-right-radius: 4px;
+}
+
+/* BOT */
+.bot {
+    background: #f1f5f9;
+    color: #333;
+    border-bottom-left-radius: 4px;
+}
+
+/* INPUT */
+.chat-input {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    outline: none;
+}
+
+.chat-input button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+/* QUICK BUTTONS */
+.quick-buttons {
+    margin-bottom: 12px;
+}
+
+.quick-buttons button {
+    margin: 4px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: none;
+    background: #e0ecff;
+    color: #2563eb;
+    font-size: 12px;
+    transition: 0.2s;
+}
+
+.quick-buttons button:hover {
+    background: #2563eb;
+    color: white;
+}
+
+/* SCROLLBAR */
+.chat-box::-webkit-scrollbar {
+    width: 4px;
+}
+.chat-box::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+
+/* RESPONSIVE */
+@media(max-width: 700px){
+    .msg {
+        max-width: 85%;
+    }
+}
+
+</style>
+
+<div class="chat-header">
+<h4>Support Chat</h4>
+<p style="margin:0;">Get instant help or raise a ticket</p>
+</div>
+
+<div class="chat-container">
+
+<div>
+
+<!-- QUICK OPTIONS -->
+<div class="quick-buttons">
+<button onclick="quickMsg('internet')">Internet Issue</button>
+<button onclick="quickMsg('billing')">Billing Issue</button>
+<button onclick="quickMsg('kyc')">KYC Help</button>
+<button onclick="goToTickets()">Raise Ticket</button>
+</div>
+
+<!-- CHAT -->
+<div class="chat-box" id="chatBox"></div>
+
+</div>
+
+<!-- INPUT -->
+<div class="chat-input">
+<input type="text" id="msgInput" placeholder="Type your message...">
+<button onclick="sendMsg()">Send</button>
+</div>
+
+</div>
+
+<script>
+
+function addMsg(text, type){
+    let box = document.getElementById("chatBox");
+
+    let div = document.createElement("div");
+    div.className = "msg " + type;
+    div.innerText = text;
+
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+}
+
+/* SEND */
+function sendMsg(){
+    let input = document.getElementById("msgInput");
+    let text = input.value.trim();
+
+    if(text === "") return;
+
+    addMsg(text, "user");
+    input.value = "";
+
+    setTimeout(() => botReply(text.toLowerCase()), 500);
+}
+
+/* QUICK */
+function quickMsg(type){
+    if(type === "internet"){
+        addMsg("Internet issue", "user");
+        botReply("internet");
+    }
+    if(type === "billing"){
+        addMsg("Billing issue", "user");
+        botReply("billing");
+    }
+    if(type === "kyc"){
+        addMsg("KYC help", "user");
+        botReply("kyc");
+    }
+}
+
+/* BOT */
+function botReply(text){
+
+    if(text.includes("internet") || text.includes("wifi")){
+        addMsg("Try restarting your router. If issue persists, you can raise a ticket.", "bot");
+    }
+    else if(text.includes("billing")){
+        addMsg("Please check your billing section. Need help? You can raise a ticket.", "bot");
+    }
+    else if(text.includes("kyc")){
+        addMsg("You can complete your KYC from the KYC section in dashboard.", "bot");
+    }
+    else{
+        addMsg("I'm here to help. Please describe your issue or raise a ticket.", "bot");
+    }
+}
+
+/* REDIRECT */
+function goToTickets(){
+    window.location.href = "/tickets";
+}
+
+/* ENTER KEY */
+document.getElementById("msgInput").addEventListener("keypress", function(e){
+    if(e.key === "Enter"){
+        sendMsg();
+    }
+});
+
+/* DEFAULT */
+window.onload = function(){
+    addMsg("Hi! How can I help you today?", "bot");
+}
+
+</script>
+
+{% endblock %}

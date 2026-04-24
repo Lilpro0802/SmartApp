@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP - SmartApp</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/static/images/logo1.png">
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --dark: #0f172a;
+            --gray: #64748b;
+        }
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+            opacity: 0; animation: fadeInBody 0.6s ease forwards;
+        }
+        @keyframes fadeInBody { from { opacity: 0; } to { opacity: 1; } }
+        .auth-card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 400px;
+            padding: 48px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+        .auth-logo { margin-bottom: 24px; }
+        .auth-logo img { height: 60px; }
+        h1 { font-size: 24px; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
+        .auth-subtitle { font-size: 14px; color: var(--gray); margin-bottom: 32px; }
+
+        .form-control { 
+            width: 100%; height: 54px; border-radius: 12px; border: 1.5px solid #e2e8f0; 
+            padding: 0 16px; font-size: 18px; font-weight: 600; text-align: center;
+            letter-spacing: 4px; transition: all 0.2s ease; box-sizing: border-box;
+        }
+        .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+        
+        .btn-auth { 
+            height: 54px; border-radius: 12px; background: #10b981; 
+            color: #fff; border: none; font-weight: 700; width: 100%; 
+            font-size: 16px; transition: all 0.3s ease; margin-top: 24px; cursor: pointer;
+        }
+        .btn-auth:hover { opacity: 0.9; transform: translateY(-1px); }
+        
+        @media (max-width: 500px) {
+            .auth-card { padding: 32px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <a href="/" style="position: absolute; top: 24px; left: 24px; text-decoration: none; color: var(--gray); font-weight: 600; font-size: 14px; display: flex; align-items: center; transition: all 0.2s; opacity: 0.8;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8">
+        <i class="bi bi-arrow-left" style="margin-right: 6px; font-size: 18px;"></i> Back to Home
+    </a>
+
+    <div class="auth-card">
+        <div class="auth-logo">
+            <img src="/static/images/logo1.png" alt="SmartApp Logo">
+        </div>
+
+        <h1>Enter OTP</h1>
+        <p class="auth-subtitle">Check your messages for the verification code.</p>
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="text" name="otp" class="form-control" placeholder="000000" maxlength="6" required autofocus>
+            <button type="submit" class="btn-auth shadow-sm">Verify OTP →</button>
+        </form>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .dashboard-header { margin-bottom: 24px; }
+    .dashboard-header h2 { font-weight: 700; color: var(--dark); margin: 0; font-size: 24px; }
+    .dashboard-header p { color: var(--text-gray); margin: 4px 0 0 0; font-size: 14px; }
+
+    .tips-wrapper {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+    }
+
+    .tips-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 32px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--slate-border);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .tips-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    .tips-header-row {
+        display: flex; align-items: center; gap: 16px; margin-bottom: 24px;
+        padding-bottom: 16px; border-bottom: 1px solid var(--slate-border);
+    }
+
+    .tips-icon-wrapper {
+        width: 48px; height: 48px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center; font-size: 24px;
+    }
+
+    .do .tips-icon-wrapper { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .dont .tips-icon-wrapper { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+    .tips-header-row h4 { font-weight: 700; color: var(--dark); margin: 0; font-size: 18px; }
+    .tips-header-row p { font-size: 13px; color: var(--text-gray); margin: 4px 0 0 0; }
+
+    .tips-list { list-style: none; padding: 0; margin: 0; }
+    .tips-list li {
+        display: flex; align-items: flex-start; gap: 16px; margin-bottom: 16px;
+        font-size: 14px; color: var(--dark); line-height: 1.5; font-weight: 500;
+        background: var(--slate); padding: 16px; border-radius: 12px;
+    }
+    .tips-list li:last-child { margin-bottom: 0; }
+    
+    .tips-list li i { font-size: 18px; margin-top: -2px; }
+    .do .tips-list li i { color: #10b981; }
+    .dont .tips-list li i { color: #ef4444; }
+
+    @media(max-width: 991px) {
+        .tips-wrapper { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="dashboard-header">
+    <h2>Self-Care Troubleshooting</h2>
+    <p>Follow these best practices to improve the speed, security, and performance of your SmartApp Wi-Fi network.</p>
+</div>
+
+<div class="tips-wrapper">
+
+    <!-- DO's -->
+    <div class="tips-card do">
+        <div class="tips-header-row">
+            <div class="tips-icon-wrapper"><i class="bi bi-check2-circle"></i></div>
+            <div>
+                <h4>Best Practices</h4>
+                <p>Do these to maximize your fiber experience</p>
+            </div>
+        </div>
+
+        <ul class="tips-list">
+            <li><i class="bi bi-router-fill"></i> Place your Wi-Fi router in a central, open location for optimal coverage.</li>
+            <li><i class="bi bi-box-arrow-up"></i> Keep your router elevated (on a table or shelf), never on the floor.</li>
+            <li><i class="bi bi-shield-lock-fill"></i> Use a strong, unpredictable password (WPA3 or WPA2) to secure your network.</li>
+            <li><i class="bi bi-arrow-repeat"></i> Restart your router once a week to clear cache and improve performance.</li>
+            <li><i class="bi bi-cloud-arrow-up-fill"></i> Regularly update your router's firmware for the latest security patches.</li>
+            <li><i class="bi bi-wifi"></i> Use the 5GHz band for devices close to the router to achieve maximum speed.</li>
+        </ul>
+    </div>
+
+    <!-- DON'Ts -->
+    <div class="tips-card dont">
+        <div class="tips-header-row">
+            <div class="tips-icon-wrapper"><i class="bi bi-x-circle"></i></div>
+            <div>
+                <h4>Things to Avoid</h4>
+                <p>Don't do these to prevent connection drops</p>
+            </div>
+        </div>
+
+        <ul class="tips-list">
+            <li><i class="bi bi-boxes"></i> Don't place the router near thick concrete walls, fish tanks, or large metal appliances.</li>
+            <li><i class="bi bi-person-x-fill"></i> Don't share your primary Wi-Fi password; set up a 'Guest Network' for visitors instead.</li>
+            <li><i class="bi bi-door-closed-fill"></i> Don't enclose the router inside closed TV cabinets or drawers (it causes overheating).</li>
+            <li><i class="bi bi-tv-fill"></i> Don't keep the router near microwaves or cordless phones to prevent signal interference.</li>
+            <li><i class="bi bi-hdd-network-fill"></i> Don't use outdated or cheap secondary routers, as they will bottleneck your fiber speed.</li>
+        </ul>
+    </div>
+
+</div>
+
+{% endblock %}
