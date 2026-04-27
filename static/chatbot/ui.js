@@ -322,7 +322,14 @@ function enhanceFaqUi(refs) {
 function buildDOM() {
   var root = el("div", "theme-premium", { id: ROOT_ID });
   root.style.opacity = "0";
-  root.style.transition = "opacity 0.25s ease";
+  root.style.transition = "opacity 0.8s ease";
+  // Force fixed positioning immediately to prevent layout shifts
+  root.style.position = "fixed";
+  root.style.bottom = "24px";
+  root.style.right = "24px";
+  root.style.zIndex = "999999";
+  root.style.display = "block";
+  
   var wrap = el("div", NS + "-wrap");
 
   var panel = el("div", NS + "-panel", {

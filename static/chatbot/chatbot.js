@@ -14,7 +14,6 @@ var SS_PANEL_OPEN = "rishit-chatbot-panel-open";
 var SS_KEYS_CLEAR_ON_RELOAD = [
   "rishit-chatbot-messages-v1",
   "rishit-chatbot-nav-v1",
-  "rishit-chatbot-panel-open",
   "rishit-chatbot-panel-expanded",
 ];
 
@@ -91,9 +90,14 @@ function init() {
     messaging.scrollToBottom();
   }
 
-  if (typeof refs.setOpen === "function" && !hasPanelPreference && startedEmpty) {
+  if (typeof refs.setOpen === "function" && startedEmpty && !hasPanelPreference) {
     window.setTimeout(function () {
-      refs.setOpen(true);
+      // Re-verify after delay that no interaction happened
+      var currentPref = null;
+      try { currentPref = window.sessionStorage.getItem(SS_PANEL_OPEN); } catch(e){}
+      if (currentPref === null) {
+        refs.setOpen(true);
+      }
     }, AUTO_OPEN_DELAY_MS);
   }
 
