@@ -106,9 +106,8 @@ def register():
             return redirect('/verify_email')
 
         except Exception as e:
-            print(f"Error: {e}")
             get_db().rollback()
-            return "Something went wrong ❌"
+            return f"DEBUG ERROR: {str(e)} ❌"
 
     return render_template('register.html')
 
