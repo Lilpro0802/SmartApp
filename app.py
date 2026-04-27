@@ -107,7 +107,7 @@ def register():
 
         except Exception as e:
             get_db().rollback()
-            return f"DEBUG ERROR: {str(e)} ❌"
+            return "Something went wrong ❌"
 
     return render_template('register.html')
 
