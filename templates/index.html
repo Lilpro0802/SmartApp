@@ -126,10 +126,10 @@
             <div class="collapse navbar-collapse" id="navCollapse">
                 <div class="nav-links-wrapper">
                     <div class="mx-auto navbar-nav d-flex align-items-center">
-                        <a href="#connection-selection" class="nav-link-custom" onclick="selectRole('home')">Individual</a>
-                        <a href="#connection-selection" class="nav-link-custom" onclick="selectRole('business')">Business</a>
+                        <a href="javascript:void(0)" class="nav-link-custom" onclick="selectRole('home', false, 'connection-selection')">Individual</a>
+                        <a href="javascript:void(0)" class="nav-link-custom" onclick="selectRole('business', false, 'connection-selection')">Business</a>
                         <a href="#plans" class="nav-link-custom">Plans</a>
-                        <a href="#" class="nav-link-custom">Get SmartApp</a>
+                        <a href="javascript:void(0)" class="nav-link-custom" onclick="alert('SmartApp Mobile is coming soon to iOS & Android!')">Get SmartApp</a>
                         <a href="#contact" class="nav-link-custom">Contact</a>
                     </div>
                 </div>
@@ -231,7 +231,7 @@
         </div>
         <div class="row g-4 justify-content-center">
             <div class="col-md-5">
-                <div id="card-home" class="card connection-card border-0 shadow-sm h-100 p-4 bg-white" onclick="selectRole('home')">
+                <div id="card-home" class="card connection-card border-0 shadow-sm h-100 p-4 bg-white" onclick="selectRole('home', true)">
                     <div class="card-body text-center" style="cursor: pointer;">
                         <div class="selection-status d-none mb-2"><span class="badge rounded-pill bg-success px-3 py-2"><i class="bi bi-check-circle-fill me-2"></i>Selected</span></div>
                         <i class="bi bi-house-heart fs-1 text-primary mb-3"></i>
@@ -245,7 +245,7 @@
                 </div>
             </div>
             <div class="col-md-5">
-                <div id="card-business" class="card connection-card border-0 shadow-sm h-100 p-4 bg-business-tint" onclick="selectRole('business')">
+                <div id="card-business" class="card connection-card border-0 shadow-sm h-100 p-4 bg-business-tint" onclick="selectRole('business', true)">
                     <div class="card-body text-center" style="cursor: pointer;">
                         <div class="selection-status d-none mb-2"><span class="badge rounded-pill bg-success px-3 py-2"><i class="bi bi-check-circle-fill me-2"></i>Selected</span></div>
                         <i class="bi bi-briefcase fs-1 text-primary mb-3"></i>
@@ -484,7 +484,7 @@
                 </div>
             </div>`;
 
-        function selectRole(role, onlyToggle = false) {
+        function selectRole(role, onlyToggle = false, scrollTargetId = null) {
             const btnHome = document.getElementById('btnHome');
             const btnOffice = document.getElementById('btnOffice');
             const homePlans = document.getElementById('homePlans');
@@ -521,7 +521,11 @@
                 cardHome.querySelector('.selection-status').classList.add('d-none');
                 viewText.innerHTML = `Currently viewing <span class="fw-bold text-primary">Business</span> plans`;
             }
-            if(!onlyToggle) window.location.hash = "plans";
+
+            if(!onlyToggle) {
+                const target = document.getElementById(scrollTargetId || 'plans');
+                if (target) target.scrollIntoView({ behavior: 'smooth' });
+            }
         }
 
         // Initialize (passing true to prevent scrolling on load)
@@ -541,5 +545,7 @@
         };
         document.addEventListener('DOMContentLoaded', revealContent);
     </script>
+    <!-- Chatbot Integration -->
+    <script type="module" src="{{ url_for('static', filename='chatbot/chatbot.js') }}"></script>
 </body>
 </html>

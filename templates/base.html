@@ -6,6 +6,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Favicon -->
 <link rel="icon" type="image/png" href="/static/images/logo1.png">
+<meta name="description" content="Telesmart SmartApp - High-speed fiber broadband management and support.">
+<meta name="author" content="Rishit">
+
+<script>
+    window.USER_NAME = "{{ session.get('user_name', '') }}";
+</script>
 
 <!-- Fonts & Icons -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -326,5 +332,7 @@
     }
 </script>
 
+    <!-- Chatbot Integration -->
+    <script type="module" src="{{ url_for('static', filename='chatbot/chatbot.js') }}"></script>
 </body>
 </html>

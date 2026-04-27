@@ -29,13 +29,19 @@ google = oauth.register(
 
 def get_db():
     if 'db' not in g:
-        g.db = psycopg2.connect(
-            dbname=os.getenv("DB_NAME"),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD"),
-            host=os.getenv("DB_HOST", "localhost"),
-            port=os.getenv("DB_PORT", "5432")
-        )
+        db_url = os.getenv("DATABASE_URL")
+        if db_url:
+            # For cloud deployment (Render, Heroku, etc.)
+            g.db = psycopg2.connect(db_url)
+        else:
+            # Local fallback
+            g.db = psycopg2.connect(
+                dbname=os.getenv("DB_NAME"),
+                user=os.getenv("DB_USER"),
+                password=os.getenv("DB_PASSWORD"),
+                host=os.getenv("DB_HOST", "localhost"),
+                port=os.getenv("DB_PORT", "5432")
+            )
     return g.db
 
 @app.teardown_appcontext
@@ -841,6 +847,11 @@ def change_password():
         flash("Something went wrong ❌", "error")
 
     return redirect('/profile')
+
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
 
 
 if __name__ == '__main__':
