@@ -76,6 +76,9 @@ def home():
 # ---------------- REGISTER ----------------
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    if 'user_id' in session:
+        return redirect('/business_dashboard' if session.get('user_role') == 'business' else '/dashboard')
+        
     if request.method == 'POST':
         try:
             name = request.form['name']
@@ -175,6 +178,9 @@ def set_password():
 # ---------------- LOGIN ----------------
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if 'user_id' in session:
+        return redirect('/business_dashboard' if session.get('user_role') == 'business' else '/dashboard')
+
     if request.method == 'POST':
         email = request.form['email'].strip().lower()
         password = request.form['password']
@@ -194,6 +200,7 @@ def login():
 
             session['user_id'] = user[0]
             session['user_name'] = user[1]
+            session['user_role'] = user_role
 
             # ✅ ADD THIS (LAST LOGIN UPDATE)
             cur.execute("""
@@ -331,8 +338,9 @@ def google_callback():
         session['user_id'] = user[0]
         session['user_name'] = user[1]
         user_role = (user[2] or 'user').strip().lower()
-
-        if user_role == "business":
+        session['user_role'] = user_role
+        
+        if user_role == 'business':
             return redirect('/business_dashboard')
         return redirect('/dashboard')
 
