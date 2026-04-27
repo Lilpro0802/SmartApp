@@ -17,6 +17,12 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "default_secret_key")
 csrf = CSRFProtect(app)
 
+# --- SESSION CONFIG (Remember Me) ---
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
+from flask_session import Session
+Session(app)
+
 # --- GOOGLE OAUTH SETUP ---
 oauth = OAuth(app)
 google = oauth.register(
@@ -198,6 +204,7 @@ def login():
             if user_role != role:
                 return render_template('login.html', error="Wrong login type ❌")
 
+            session.permanent = True
             session['user_id'] = user[0]
             session['user_name'] = user[1]
             session['user_role'] = user_role
@@ -335,6 +342,7 @@ def google_callback():
         cur.execute("UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = %s", (user[0],))
         get_db().commit()
 
+        session.permanent = True
         session['user_id'] = user[0]
         session['user_name'] = user[1]
         user_role = (user[2] or 'user').strip().lower()
