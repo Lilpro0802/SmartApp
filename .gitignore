@@ -5,3 +5,4 @@ __pycache__/
 .DS_Store
 instance/
 .pytest_cache/
+flask_session/

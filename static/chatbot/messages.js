@@ -82,7 +82,7 @@ var BTN_BIZ_BILLING_SUB = [
 // Business: Contact sub-menu
 var BTN_BIZ_CONTACT_SUB = [
   { text: "Raise Support Ticket", action: "GO_TICKETS" },
-  { text: "Custom Plan Request",  action: "FAQ_CUSTOM_REQUEST" },
+  { text: "Custom Plan Request",  action: "GO_CUSTOM_REQUEST" },
   { text: "Call / Email Us",      action: "FAQ_CONTACT" },
 ];
 
@@ -147,8 +147,8 @@ var FAQ = {
 
   FAQ_BILLING_DASH:
     "Billing & Invoices:\n\n" +
-    "• View and download invoices from Browse Plans in the sidebar\n" +
-    "• We accept UPI, net banking, credit/debit cards, and auto-pay\n" +
+    "• Invoices can be downloaded from the main Dashboard page or by contacting Support.\n" +
+    "• We accept UPI, net banking, credit/debit cards, and auto-pay.\n" +
     "• Bills generate on the 1st of each month, due within 7 days\n\n" +
     "For billing queries, email cc@telesmart.in.",
 
@@ -261,9 +261,39 @@ export function setupMessaging(refs) {
 
   /* ── rendering ── */
 
-  function scrollToBottom() {
+  function scrollToNode(node) {
+    if (!node || !refs.messagesEl) return;
     window.requestAnimationFrame(function () {
-      refs.messagesEl.scrollTop = refs.messagesEl.scrollHeight;
+      var container = refs.messagesEl;
+
+      function doScroll() {
+        var cHeight = container.clientHeight;
+        var sHeight = container.scrollHeight;
+        var nodeTop = node.offsetTop;
+        var nodeHeight = node.offsetHeight;
+
+        // If the new content is taller than the viewport, we align to the TOP of the text so the user can actually read it
+        if (nodeHeight > cHeight) {
+          container.scrollTop = Math.max(0, nodeTop - 10);
+        } else {
+          // Otherwise, normal behavior: snap to bottom
+          container.scrollTop = sHeight;
+        }
+      }
+
+      doScroll();
+      // Secondary deferred check secures layout recalculations
+      setTimeout(function () {
+        if (refs.messagesEl) doScroll();
+      }, 50);
+    });
+  }
+
+  // Preserve scrollToBottom for external calls (like initial loads from chatbot.js)
+  function scrollToBottom() {
+    window.requestAnimationFrame(function() {
+       if (refs.messagesEl) refs.messagesEl.scrollTop = refs.messagesEl.scrollHeight;
+       setTimeout(function() { if (refs.messagesEl) refs.messagesEl.scrollTop = refs.messagesEl.scrollHeight; }, 50);
     });
   }
 
@@ -272,14 +302,12 @@ export function setupMessaging(refs) {
     messages.push(msg);
     saveToSession(SS_MSG_KEY, messages);
 
-    // Remove all previous button groups so only the latest set is visible
-    if (msg.actions && msg.actions.length > 0) {
-      var oldGroups = refs.messagesEl.querySelectorAll(".rishit-chatbot-action-group");
-      for (var i = 0; i < oldGroups.length; i++) oldGroups[i].remove();
-    }
+    // ALWAYS remove all previous button groups so only the latest is visible
+    var oldGroups = refs.messagesEl.querySelectorAll(".rishit-chatbot-action-group");
+    for (var i = 0; i < oldGroups.length; i++) oldGroups[i].remove();
 
-    renderMessage(msg);
-    scrollToBottom();
+    var wrapperNode = renderMessage(msg);
+    scrollToNode(wrapperNode);
   }
 
   function renderMessage(msg) {
@@ -319,6 +347,7 @@ export function setupMessaging(refs) {
 
     wrapper.appendChild(block);
     refs.messagesEl.appendChild(wrapper);
+    return wrapper;
   }
 
   /* ── busy / typing ── */
@@ -414,12 +443,13 @@ export function setupMessaging(refs) {
 
       /* ─── Navigation redirects ─── */
       case "GO_TO_LOGIN":
+        addMessage("bot", "Taking you to the login page...", homeButtons);
         clearChatSession();
         window.location.href = "/login";
         return;
 
       case "GO_FORGOT_PASS":
-        addMessage("bot", "To reset your password:\n\n1. Click 'Forgot Password?' on the login page\n2. Enter your registered email address\n3. Check your inbox for the reset link\n4. Set a new password\n\nTaking you there now...");
+        addMessage("bot", "To reset your password:\n\n1. Click 'Forgot Password?' on the login page\n2. Enter your registered email address\n3. Check your inbox for the reset link\n4. Set a new password\n\nTaking you there now...", homeButtons);
         setTimeout(function () {
           clearChatSession();
           window.location.href = "/forgot_password";
@@ -427,52 +457,69 @@ export function setupMessaging(refs) {
         return;
 
       case "GO_BROWSE_PLANS":
-        window.location.href = "/plans";
+        addMessage("bot", "Taking you to Browse Plans...", homeButtons);
+        window.location.href = getPageContext() === 'business_dash' ? "/business_plans" : "/plans";
         return;
 
       case "GO_ACCOUNT_SETTINGS":
-        addMessage("bot", "To change your password:\n\n1. Go to Account Settings\n2. Click 'Change Password'\n3. Enter your current and new password\n4. Click Save\n\nRedirecting to Account Settings...");
+        addMessage("bot", "To change your password:\n\n1. Go to Account Settings\n2. Click 'Change Password'\n3. Enter your current and new password\n4. Click Save\n\nRedirecting to Account Settings...", homeButtons);
         setTimeout(function () {
-          window.location.href = "/profile";
+          window.location.href = getPageContext() === 'business_dash' ? "/business_profile" : "/profile";
         }, 3000);
         return;
 
       case "GO_TICKETS":
-        window.location.href = "/tickets";
+        addMessage("bot", "Opening the Support Tickets dashboard...", homeButtons);
+        window.location.href = getPageContext() === 'business_dash' ? "/business_tickets" : "/tickets";
+        return;
+
+      case "GO_CUSTOM_REQUEST":
+        addMessage("bot", "Opening the Custom Requirements dashboard...", homeButtons);
+        window.location.href = "/business_custom_request";
         return;
 
       /* ─── Dashboard: Internet Problems ─── */
       case "DASH_INTERNET":
-        navStack.push("DASH_INTERNET");
-        saveToSession(SS_NAV_KEY, navStack);
+        if (navStack[navStack.length - 1] !== "DASH_INTERNET") {
+          navStack.push("DASH_INTERNET");
+          saveToSession(SS_NAV_KEY, navStack);
+        }
         addMessage("bot", "What kind of issue are you facing?", BTN_INTERNET_SUB);
         return;
 
       /* ─── Dashboard: Account & Billing ─── */
       case "DASH_BILLING":
-        navStack.push("DASH_BILLING");
-        saveToSession(SS_NAV_KEY, navStack);
+        if (navStack[navStack.length - 1] !== "DASH_BILLING") {
+          navStack.push("DASH_BILLING");
+          saveToSession(SS_NAV_KEY, navStack);
+        }
         addMessage("bot", "What do you need help with?", BTN_BILLING_SUB);
         return;
 
       /* ─── Business: Billing & Account ─── */
       case "BIZ_BILLING":
-        navStack.push("BIZ_BILLING");
-        saveToSession(SS_NAV_KEY, navStack);
+        if (navStack[navStack.length - 1] !== "BIZ_BILLING") {
+          navStack.push("BIZ_BILLING");
+          saveToSession(SS_NAV_KEY, navStack);
+        }
         addMessage("bot", "What would you like to do?", BTN_BIZ_BILLING_SUB);
         return;
 
       /* ─── Business: Contact ─── */
       case "BIZ_CONTACT":
-        navStack.push("BIZ_CONTACT");
-        saveToSession(SS_NAV_KEY, navStack);
+        if (navStack[navStack.length - 1] !== "BIZ_CONTACT") {
+          navStack.push("BIZ_CONTACT");
+          saveToSession(SS_NAV_KEY, navStack);
+        }
         addMessage("bot", "How would you like to reach us?", BTN_BIZ_CONTACT_SUB);
         return;
 
       /* ─── Landing FAQ ─── */
       case "FAQ_LANDING":
-        navStack.push("FAQ_LANDING");
-        saveToSession(SS_NAV_KEY, navStack);
+        if (navStack[navStack.length - 1] !== "FAQ_LANDING") {
+          navStack.push("FAQ_LANDING");
+          saveToSession(SS_NAV_KEY, navStack);
+        }
         addMessage("bot", "Here are some common questions:", BTN_FAQ_LANDING);
         return;
 
@@ -490,13 +537,18 @@ export function setupMessaging(refs) {
       case "FAQ_OTP":
       case "FAQ_CUSTOM_REQUEST":
       case "FAQ_CANCEL":
-        if (FAQ[action]) addMessage("bot", FAQ[action], homeButtons);
+        if (FAQ[action]) {
+          navStack = ["MAIN_MENU"];
+          saveToSession(SS_NAV_KEY, navStack);
+          addMessage("bot", FAQ[action], homeButtons);
+        }
         return;
 
       /* ─── Main menu / Home ─── */
       case "MAIN_MENU":
-        // Don't re-trigger if already at root
-        if (navStack.length <= 1 && currentTask === null) return;
+        // Prevent redundant clicking if ALREADY resting at root, but allow it if coming from Back/Home nav
+        if (navStack.length === 1 && navStack[0] === "MAIN_MENU" && currentTask === null) return;
+        
         navStack = ["MAIN_MENU"];
         saveToSession(SS_NAV_KEY, navStack);
         currentTask = null;
@@ -512,10 +564,20 @@ export function setupMessaging(refs) {
 
       /* ─── Back ─── */
       case "BACK":
+        // If user is inside a discrete task (like Pincode entry), cancel it and redraw the current menu
+        if (currentTask !== null) {
+          currentTask = "NAVIGATING"; // Spoof task so MAIN_MENU doesn't early-return
+          executeAction(navStack[navStack.length - 1]);
+          return;
+        }
+
         // Don't go back if already at root
         if (navStack.length <= 1) return;
+        
         navStack.pop();
         saveToSession(SS_NAV_KEY, navStack);
+        
+        currentTask = "NAVIGATING"; // Spoof task so next menu renders firmly
         executeAction(navStack[navStack.length - 1]);
         return;
     }
@@ -537,6 +599,8 @@ export function setupMessaging(refs) {
       var result = await checkFeasibility(text);
       typing.remove();
       setBusy(false);
+      navStack = ["MAIN_MENU"];
+      saveToSession(SS_NAV_KEY, navStack);
       addMessage("bot", result.msg, getContextButtons());
       currentTask = null;
       return;
@@ -549,6 +613,8 @@ export function setupMessaging(refs) {
       // Check intents first (greetings, small talk)
       var intent = getIntent(text);
       if (intent && intent !== "unknown") {
+        navStack = ["MAIN_MENU"];
+        saveToSession(SS_NAV_KEY, navStack);
         addMessage("bot", getResponse(intent), getContextButtons());
         return;
       }
@@ -556,10 +622,14 @@ export function setupMessaging(refs) {
       // Then check knowledge base (broadband FAQ)
       var faq = getFaqAnswer(text);
       if (faq) {
+        navStack = ["MAIN_MENU"];
+        saveToSession(SS_NAV_KEY, navStack);
         addMessage("bot", faq, getContextButtons());
         return;
       }
 
+      navStack = ["MAIN_MENU"];
+      saveToSession(SS_NAV_KEY, navStack);
       addMessage("bot",
         "I'm not sure about that.\nTry asking about plans, billing, or speed issues — or tap a button for quick help.",
         getContextButtons()
@@ -610,6 +680,11 @@ export function setupMessaging(refs) {
   /* ── restore session ── */
   if (messages.length > 0) {
     messages.forEach(renderMessage);
+    // After rendering history, sweep for any lingering buttons strictly keeping only the last active one
+    var allGroups = refs.messagesEl.querySelectorAll(".rishit-chatbot-action-group");
+    for (var i = 0; i < allGroups.length - 1; i++) {
+        allGroups[i].remove();
+    }
   }
 
   return {

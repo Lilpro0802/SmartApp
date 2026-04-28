@@ -8,34 +8,39 @@
 
     .plans-wrapper {
         display: flex;
-        gap: 32px;
+        flex-direction: column;
+        gap: 24px;
     }
 
-    /* LEFT CATEGORY MENU */
+    /* TOP CATEGORY MENU */
     .plans-nav {
-        width: 240px;
-        flex-shrink: 0;
+        display: flex;
+        gap: 12px;
         background: #ffffff;
         border-radius: 16px;
-        padding: 16px;
+        padding: 12px 16px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
         border: 1px solid var(--slate-border);
-        align-self: flex-start;
+        width: 100%;
+        overflow-x: auto;
     }
 
     .plan-cat {
-        padding: 14px 16px;
+        flex: 1; /* evenly fill the container */
+        justify-content: center; /* center text */
+        padding: 10px 20px;
         border-radius: 10px;
         cursor: pointer;
-        margin-bottom: 8px;
         font-weight: 500;
         color: var(--text-gray);
         font-size: 14px;
         transition: all 0.2s ease;
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        white-space: nowrap;
     }
+
+    .plan-cat i { display: none; } /* Hide the chevron in top nav */
 
     .plan-cat:hover {
         background: var(--slate);
@@ -50,11 +55,10 @@
 
     /* RIGHT SIDE - GRID */
     .plans-grid {
-        flex: 1;
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         gap: 24px;
-        align-items: flex-start;
+        align-items: stretch;
     }
 
     /* PLAN CARDS */
@@ -125,10 +129,9 @@
     .premium-card.popular .btn-buy:hover { background: #1d4ed8; }
 
     @media (max-width: 991px) {
-        .plans-wrapper { flex-direction: column; }
-        .plans-nav { width: 100%; display: flex; overflow-x: auto; padding: 12px; }
-        .plan-cat { flex-shrink: 0; margin-bottom: 0; margin-right: 8px; }
-        .plan-cat i { display: none; }
+        .plans-grid {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        }
     }
 </style>
 
@@ -139,15 +142,15 @@
 
 <div class="plans-wrapper">
 
-    <!-- LEFT CATEGORY -->
+    <!-- TOP CATEGORY -->
     <div class="plans-nav">
-        <div onclick="loadPlans('best')" class="plan-cat active" id="cat-best">Featured Offers <i class="bi bi-chevron-right"></i></div>
-        <div onclick="loadPlans('annual')" class="plan-cat" id="cat-annual">12 Months (Pro) <i class="bi bi-chevron-right"></i></div>
-        <div onclick="loadPlans('semi')" class="plan-cat" id="cat-semi">6 Months <i class="bi bi-chevron-right"></i></div>
-        <div onclick="loadPlans('monthly')" class="plan-cat" id="cat-monthly">Monthly <i class="bi bi-chevron-right"></i></div>
+        <div onclick="loadPlans('best')" class="plan-cat active" id="cat-best">Featured Offers</div>
+        <div onclick="loadPlans('annual')" class="plan-cat" id="cat-annual">12 Months (Pro)</div>
+        <div onclick="loadPlans('semi')" class="plan-cat" id="cat-semi">6 Months</div>
+        <div onclick="loadPlans('monthly')" class="plan-cat" id="cat-monthly">Monthly</div>
     </div>
 
-    <!-- RIGHT PLANS -->
+    <!-- PLANS GRID -->
     <div class="plans-grid" id="plan-content">
         <!-- JS Injected Content -->
     </div>
